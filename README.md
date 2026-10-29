@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI News App
 
-## Getting Started
+개인용 뉴스 큐레이션 웹앱. 로그인하면 국내/해외 RSS 소스에서 기사를 수집하고, Claude API로 번역·요약·카테고리 분류를 거쳐 카드로 보여준다. 결과는 Notion 데이터베이스에도 동기화할 수 있다.
 
-First, run the development server:
+자세한 배경과 요구사항은 [PRD.md](./PRD.md) 참고.
+
+## 기술 스택
+
+- **Next.js (App Router)** — 로그인 화면, 뉴스 목록, 수집 트리거, API 라우트
+- **Clerk** — 인증/세션 관리 (단일 사용자)
+- **Neon (Postgres) + Drizzle ORM** — 기사 저장소
+- **Claude API** — 번역·요약·카테고리 분류
+- **Notion REST API** — 결과 동기화
+- **Vercel** — 배포
+
+## 시작하기
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[http://localhost:3000](http://localhost:3000) 에서 확인.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 환경 변수
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`.env.local`에 다음 키가 필요하다 (값은 각 서비스 콘솔에서 발급):
 
-## Learn More
+```
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+DATABASE_URL=
+ANTHROPIC_API_KEY=
+NOTION_API_KEY=
+NOTION_DATABASE_ID=
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 명령어
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run dev      # 개발 서버 (Turbopack)
+npm run build    # 프로덕션 빌드
+npm run start    # 프로덕션 빌드 실행
+npm run lint     # eslint
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 구조
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/app/` — 라우트 (App Router)
+- `src/components/` — UI 컴포넌트
+- `src/db/` — Drizzle 스키마/클라이언트
+- `src/lib/` — Claude 분석, Notion 동기화 등 비즈니스 로직
