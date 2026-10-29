@@ -32,4 +32,5 @@ npm run lint     # eslint
 - TypeScript 경로 별칭 `@/*` → `./src/*` (`tsconfig.json`)
 - App Router 사용, 소스는 `src/app/` 아래에 위치
 - Tailwind CSS v4 (`@tailwindcss/turbopack`), 스타일은 `src/app/globals.css`
+- UI 작업(색상, 레이아웃, 컴포넌트 스타일) 전에는 `ui.md`를 먼저 참고하세요
 - 저장소 루트의 `AGENTS.md`는 `next dev`가 자동으로 재생성하는 파일입니다 (`node_modules/next/dist/server/lib/generate-agent-files.js` 참고) — 직접 관리하는 파일은 아니지만 **반드시 읽어야 합니다**: 이 Next.js 버전(16.x)은 이전 버전과 API/컨벤션이 크게 달라져 학습 데이터와 맞지 않을 수 있습니다. 라우팅, 데이터 페칭, 미들웨어 등 프레임워크 관련 코드를 작성하기 전에 `node_modules/next/dist/docs/`에서 현재 버전 문서를 확인하세요.
