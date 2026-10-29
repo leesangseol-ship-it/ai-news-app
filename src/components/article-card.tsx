@@ -13,7 +13,7 @@ type Article = {
 export function ArticleCard({ article }: { article: Article }) {
   return (
     <article className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
           {article.category}
         </span>
@@ -30,7 +30,7 @@ export function ArticleCard({ article }: { article: Article }) {
         {article.summary}
       </p>
 
-      <div className="mt-auto flex items-center justify-between pt-2 text-xs text-slate-400">
+      <div className="mt-auto flex flex-col gap-1 pt-2 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
         <span>
           {article.source} · {article.language.toUpperCase()}
           {article.publishedAt

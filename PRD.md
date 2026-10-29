@@ -98,7 +98,10 @@
 - 앱이 웹 URL로 접근 가능하다
 
 ## 결정 필요 (다음 단계에서 확인 필요)
-- 국내/해외 기본 RSS 소스 목록 (구체적인 언론사/사이트)
+- 해외 RSS 소스 목록 (확정):
+  - TechCrunch AI: https://techcrunch.com/category/artificial-intelligence/feed/
+  - The Verge AI: https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
+- 국내 기본 RSS 소스 목록 (구체적인 언론사/사이트)
 - Notion 데이터베이스 세부 필드 스키마
 - Clerk / Neon / Notion 계정·API 키 발급 진행 여부 (현재 Claude API 키만 보유)
 - 자동 스케줄링(정기 자동 수집) 도입 시점 (이번 범위 밖, 현재는 로그인 트리거 + 수동 새로고침만 지원)
