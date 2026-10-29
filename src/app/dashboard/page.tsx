@@ -25,6 +25,7 @@ async function getArticles(page: number, categoryName?: string) {
       summary: articles.summary,
       category: categories.name,
       publishedAt: articles.publishedAt,
+      notionSynced: articles.notionSynced,
     })
     .from(articles)
     .innerJoin(categories, eq(articles.categoryId, categories.id))
@@ -76,6 +77,7 @@ export default async function DashboardPage({
     summary: row.summary,
     category: row.category,
     publishedAt: row.publishedAt,
+    notionSynced: row.notionSynced,
   }));
 
   return (

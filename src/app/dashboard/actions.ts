@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { articles, categories } from "@/db/schema";
 import { RSS_SOURCES } from "@/rss-sources";
 import { analyzeArticle } from "@/lib/claude";
+import { syncArticleToNotion } from "@/lib/notion";
 
 const UNCATEGORIZED_NAME = "미분류";
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -52,9 +53,13 @@ async function resolveCategoryId(name: string) {
 
 async function processArticle(article: {
   id: number;
+  url: string;
   originalTitle: string;
   originalContent: string | null;
   language: string;
+  source: string;
+  publishedAt: Date | null;
+  collectedAt: Date;
 }) {
   const existingCategories = await db
     .select({ name: categories.name })
@@ -94,9 +99,13 @@ async function processArticle(article: {
 async function processInChunks(
   items: {
     id: number;
+    url: string;
     originalTitle: string;
     originalContent: string | null;
     language: string;
+    source: string;
+    publishedAt: Date | null;
+    collectedAt: Date;
   }[],
 ) {
   for (let i = 0; i < items.length; i += PROCESS_CONCURRENCY) {
@@ -109,9 +118,13 @@ export async function reprocessFailedArticles() {
   const pending = await db
     .select({
       id: articles.id,
+      url: articles.url,
       originalTitle: articles.originalTitle,
       originalContent: articles.originalContent,
       language: articles.language,
+      source: articles.source,
+      publishedAt: articles.publishedAt,
+      collectedAt: articles.collectedAt,
     })
     .from(articles)
     .where(ne(articles.processingStatus, "done"));
@@ -164,9 +177,13 @@ export async function collectArticles() {
       .onConflictDoNothing({ target: articles.url })
       .returning({
         id: articles.id,
+        url: articles.url,
         originalTitle: articles.originalTitle,
         originalContent: articles.originalContent,
         language: articles.language,
+        source: articles.source,
+        publishedAt: articles.publishedAt,
+        collectedAt: articles.collectedAt,
       });
     added = inserted.length;
     await processInChunks(inserted);
@@ -174,4 +191,43 @@ export async function collectArticles() {
 
   revalidatePath("/dashboard");
   return { added, errors };
+}
+
+export async function saveArticleToNotion(articleId: number) {
+  const [article] = await db
+    .select({
+      url: articles.url,
+      source: articles.source,
+      language: articles.language,
+      title: articles.translatedTitle,
+      originalTitle: articles.originalTitle,
+      summary: articles.summary,
+      category: categories.name,
+      publishedAt: articles.publishedAt,
+      collectedAt: articles.collectedAt,
+    })
+    .from(articles)
+    .innerJoin(categories, eq(articles.categoryId, categories.id))
+    .where(eq(articles.id, articleId))
+    .limit(1);
+
+  if (!article) throw new Error("기사를 찾을 수 없습니다.");
+
+  await syncArticleToNotion({
+    title: article.title ?? article.originalTitle,
+    summary: article.summary,
+    category: article.category,
+    url: article.url,
+    source: article.source,
+    language: article.language,
+    publishedAt: article.publishedAt,
+    collectedAt: article.collectedAt,
+  });
+
+  await db
+    .update(articles)
+    .set({ notionSynced: true })
+    .where(eq(articles.id, articleId));
+
+  revalidatePath("/dashboard");
 }

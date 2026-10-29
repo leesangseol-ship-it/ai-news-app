@@ -1,3 +1,5 @@
+import { SaveToNotionButton } from "@/components/save-to-notion-button";
+
 type Article = {
   id: number;
   url: string;
@@ -8,6 +10,7 @@ type Article = {
   summary: string;
   category: string;
   publishedAt: Date | null;
+  notionSynced: boolean;
 };
 
 export function ArticleCard({ article }: { article: Article }) {
@@ -19,6 +22,12 @@ export function ArticleCard({ article }: { article: Article }) {
         </span>
         <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
           {article.isDomestic ? "국내" : "해외"}
+        </span>
+        <span className="ml-auto">
+          <SaveToNotionButton
+            articleId={article.id}
+            initialSaved={article.notionSynced}
+          />
         </span>
       </div>
 
