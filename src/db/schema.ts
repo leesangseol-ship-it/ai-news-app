@@ -32,4 +32,8 @@ export const articles = pgTable("articles", {
   collectedAt: timestamp("collected_at").notNull().defaultNow(),
   lastCollectedAt: timestamp("last_collected_at").notNull().defaultNow(),
   notionSynced: boolean("notion_synced").notNull().default(false),
+  processingStatus: varchar("processing_status", { length: 20 })
+    .notNull()
+    .default("pending"),
+  processingError: text("processing_error"),
 });

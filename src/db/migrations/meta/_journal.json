@@ -29,6 +29,13 @@
       "when": 1793239832330,
       "tag": "0003_drop_category_column",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793251967897,
+      "tag": "0004_add_processing_status",
+      "breakpoints": true
     }
   ]
 }

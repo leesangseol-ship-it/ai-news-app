@@ -18,18 +18,20 @@ function getPageNumbers(currentPage: number, totalPages: number) {
 export function Pagination({
   currentPage,
   totalPages,
+  category,
 }: {
   currentPage: number;
   totalPages: number;
+  category?: string;
 }) {
   const pages = getPageNumbers(currentPage, totalPages);
 
   return (
     <nav className="mt-8 flex flex-wrap items-center justify-center gap-1 text-sm">
-      <PageLink page={1} disabled={currentPage <= 1}>
+      <PageLink page={1} category={category} disabled={currentPage <= 1}>
         처음
       </PageLink>
-      <PageLink page={currentPage - 1} disabled={currentPage <= 1}>
+      <PageLink page={currentPage - 1} category={category} disabled={currentPage <= 1}>
         이전
       </PageLink>
 
@@ -49,16 +51,16 @@ export function Pagination({
             {page}
           </span>
         ) : (
-          <PageLink key={page} page={page}>
+          <PageLink key={page} page={page} category={category}>
             {page}
           </PageLink>
         ),
       )}
 
-      <PageLink page={currentPage + 1} disabled={currentPage >= totalPages}>
+      <PageLink page={currentPage + 1} category={category} disabled={currentPage >= totalPages}>
         다음
       </PageLink>
-      <PageLink page={totalPages} disabled={currentPage >= totalPages}>
+      <PageLink page={totalPages} category={category} disabled={currentPage >= totalPages}>
         끝
       </PageLink>
     </nav>
@@ -67,10 +69,12 @@ export function Pagination({
 
 function PageLink({
   page,
+  category,
   disabled,
   children,
 }: {
   page: number;
+  category?: string;
   disabled?: boolean;
   children: React.ReactNode;
 }) {
@@ -81,9 +85,12 @@ function PageLink({
       </span>
     );
   }
+  const query = category
+    ? `page=${page}&category=${encodeURIComponent(category)}`
+    : `page=${page}`;
   return (
     <Link
-      href={`/dashboard?page=${page}`}
+      href={`/dashboard?${query}`}
       className="rounded-full px-3 py-1.5 font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
     >
       {children}

@@ -2,14 +2,17 @@ import { count, desc, eq } from "drizzle-orm";
 import { UserButton } from "@clerk/nextjs";
 import { AuthGate } from "@/components/auth-gate";
 import { ArticleCard } from "@/components/article-card";
+import { CategoryFilter } from "@/components/category-filter";
 import { CollectButton } from "@/components/collect-button";
 import { Pagination } from "@/components/pagination";
 import { db } from "@/db";
 import { articles, categories } from "@/db/schema";
 
+export const maxDuration = 60;
+
 const PAGE_SIZE = 9;
 
-async function getArticles(page: number) {
+async function getArticles(page: number, categoryName?: string) {
   return db
     .select({
       id: articles.id,
@@ -25,27 +28,44 @@ async function getArticles(page: number) {
     })
     .from(articles)
     .innerJoin(categories, eq(articles.categoryId, categories.id))
+    .where(categoryName ? eq(categories.name, categoryName) : undefined)
     .orderBy(desc(articles.publishedAt))
     .limit(PAGE_SIZE)
     .offset((page - 1) * PAGE_SIZE);
 }
 
-async function getArticleCount() {
-  const [row] = await db.select({ value: count() }).from(articles);
+async function getArticleCount(categoryName?: string) {
+  const query = db
+    .select({ value: count() })
+    .from(articles)
+    .innerJoin(categories, eq(articles.categoryId, categories.id));
+  const [row] = categoryName
+    ? await query.where(eq(categories.name, categoryName))
+    : await query;
   return row.value;
+}
+
+async function getUsedCategories() {
+  const rows = await db
+    .selectDistinct({ name: categories.name })
+    .from(categories)
+    .innerJoin(articles, eq(articles.categoryId, categories.id))
+    .orderBy(categories.name);
+  return rows.map((row) => row.name);
 }
 
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; category?: string }>;
 }) {
-  const { page: pageParam } = await searchParams;
-  const totalCount = await getArticleCount();
+  const { page: pageParam, category } = await searchParams;
+  const usedCategories = await getUsedCategories();
+  const totalCount = await getArticleCount(category);
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const page = Math.min(Math.max(1, Number(pageParam) || 1), totalPages);
 
-  const rows = await getArticles(page);
+  const rows = await getArticles(page, category);
   const items = rows.map((row) => ({
     id: row.id,
     url: row.url,
@@ -74,6 +94,13 @@ export default async function DashboardPage({
         </header>
 
         <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
+          {usedCategories.length > 0 && (
+            <CategoryFilter
+              categories={usedCategories}
+              activeCategory={category}
+            />
+          )}
+
           {items.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-20 text-center">
               <svg
@@ -91,7 +118,9 @@ export default async function DashboardPage({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14 4v6h6" />
               </svg>
               <p className="font-medium text-slate-500 dark:text-slate-400">
-                아직 수집된 뉴스가 없습니다.
+                {category
+                  ? "해당 카테고리에 뉴스가 없습니다."
+                  : "아직 수집된 뉴스가 없습니다."}
               </p>
               <p className="text-sm text-slate-400 dark:text-slate-500">
                 뉴스가 수집되면 이 화면에 카드로 표시됩니다.
@@ -106,7 +135,11 @@ export default async function DashboardPage({
           )}
 
           {totalPages > 1 && (
-            <Pagination currentPage={page} totalPages={totalPages} />
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              category={category}
+            />
           )}
         </main>
       </div>
