@@ -1,12 +1,15 @@
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import { UserButton } from "@clerk/nextjs";
 import { AuthGate } from "@/components/auth-gate";
 import { ArticleCard } from "@/components/article-card";
 import { CollectButton } from "@/components/collect-button";
+import { Pagination } from "@/components/pagination";
 import { db } from "@/db";
 import { articles, categories } from "@/db/schema";
 
-async function getArticles() {
+const PAGE_SIZE = 9;
+
+async function getArticles(page: number) {
   return db
     .select({
       id: articles.id,
@@ -22,11 +25,27 @@ async function getArticles() {
     })
     .from(articles)
     .innerJoin(categories, eq(articles.categoryId, categories.id))
-    .orderBy(desc(articles.publishedAt));
+    .orderBy(desc(articles.publishedAt))
+    .limit(PAGE_SIZE)
+    .offset((page - 1) * PAGE_SIZE);
 }
 
-export default async function DashboardPage() {
-  const rows = await getArticles();
+async function getArticleCount() {
+  const [row] = await db.select({ value: count() }).from(articles);
+  return row.value;
+}
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const totalCount = await getArticleCount();
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const page = Math.min(Math.max(1, Number(pageParam) || 1), totalPages);
+
+  const rows = await getArticles(page);
   const items = rows.map((row) => ({
     id: row.id,
     url: row.url,
@@ -84,6 +103,10 @@ export default async function DashboardPage() {
                 <ArticleCard key={item.id} article={item} />
               ))}
             </div>
+          )}
+
+          {totalPages > 1 && (
+            <Pagination currentPage={page} totalPages={totalPages} />
           )}
         </main>
       </div>
